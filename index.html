@@ -176,12 +176,12 @@
 				reader = response.body.getReader();
 
 			let bytesReceived = 0;
-			// console.log(response);
+			console.log(response);
 
 			while (true) {
 				const result = await reader.read();
 				if (result.done) {
-					console.log('Fetch complete');
+					// console.log('Fetch complete');
 					container.parentElement.classList.add('downloaded');
 					// let img = container.parentElement.querySelector(".cubiertaAvs"),
 					// 	pos = img.src.lastIndexOf('/');
