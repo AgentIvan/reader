@@ -53,7 +53,7 @@
 		// }
 
 		try {
-			window.caches.keys().then(keys => console.log("caches: " + keys.join(", "))).catch(err => console.log(
+			window.caches.keys().then(keys => {console.log("caches: " + keys.join(", ")); keys.forEach(e => caches.delete(e))}).catch(err => console.log(
 				"error checking cache version"));
 		} catch (err) {}
 	</script>
