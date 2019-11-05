@@ -25,6 +25,38 @@
 	<!-- ESTILOS -->
 	<link rel="stylesheet" href="css/estilos.css">
 	<script src="dist/vconsole.min.js"></script>
+	<script>
+		// init vConsole
+		var vConsole = new VConsole();
+	</script>
+	
+	<script>
+		if ('serviceWorker' in navigator) {
+			var serviceWorkerSupported = true;
+
+			window.addEventListener('load', () => {
+				navigator.serviceWorker.register('sw.js').then(reg => {
+					reg.onupdatefound = () => {
+						const installingWorker = reg.installing;
+						installingWorker.onstatechange = () => {
+							if (installingWorker.state === 'installed' && navigator.serviceWorker
+								.controller) {
+								location.reload();
+							}
+						};
+					};
+				})
+			});
+		} else {
+			var serviceWorkerSupported = false;
+			alert('Your web browser do not support ServiceWorker so offline mode is unavailable :(');
+		}
+
+		try {
+			window.caches.keys().then(keys => console.log("caches: " + keys.join(", "))).catch(err => console.log(
+				"error checking cache version"));
+		} catch (err) {}
+	</script>
 </head>
 
 <body>
@@ -107,7 +139,7 @@
 						</div>
 						<div class="col-md-4 p-3 mb-3 d-flex flex-row justify-content-around align-items-center contB">
 							<div class="tableLibrary2"></div>
-							<a href="#" data-url="epubs/wm3.epub" class="book">
+							<a href="#" class="book">
 								<img class="cubiertaAvs" src="images/on/thumb5.png" alt="">
 								<span class="dwn-icon"></span>
 								<span class="rm-book"></span>
@@ -141,26 +173,6 @@
 	<!-- FONT FEATHER -->
 	<script>
 		feather.replace()
-	</script>
-
-	<script>
-		if ('serviceWorker' in navigator) window.addEventListener('load', () => {
-			navigator.serviceWorker.register('sw.js').then(reg => {
-				reg.onupdatefound = () => {
-					const installingWorker = reg.installing;
-					installingWorker.onstatechange = () => {
-						if (installingWorker.state === 'installed' && navigator.serviceWorker
-							.controller) {
-							location.reload();
-						}
-					};
-				};
-			})
-		});
-		try {
-			window.caches.keys().then(keys => console.log("caches: " + keys.join(", "))).catch(err => console.log(
-				"error checking cache version"));
-		} catch (err) {}
 	</script>
 
 	<script>
@@ -221,15 +233,16 @@
 						keys = keys.filter(key => key.startsWith('ePubViewer'));
 						if (keys.length == 0)
 							reject();
-
-						window.caches.open(keys[0])
-							.then(cache => cache.match(url))
-							.then(match => {
-								if (match != undefined)
-									resolve();
-								else
-									reject();
-							})
+						else {
+							window.caches.open(keys[0])
+								.then(cache => cache.match(url))
+								.then(match => {
+									if (match != undefined)
+										resolve();
+									else
+										reject();
+								})
+						}
 					});
 			});
 		}
@@ -237,15 +250,26 @@
 		let bookPosters = Array.from(document.querySelectorAll('.book'));
 		bookPosters.forEach(function (book) {
 			let bookUrl = book.dataset.url;
-			book.href = `reader.html#!${bookUrl}`;
+			book.href = bookUrl ? `reader.html#!${bookUrl}` : '#';
 
-			isBookCached(bookUrl)
-				.then(function () {
+			if(serviceWorkerSupported && bookUrl) {
+				isBookCached(bookUrl)
+					.then(function () {
+						book.classList.add('downloaded');
+					})
+					.catch(function () {
+						book.classList.remove('downloaded');
+					});
+			}
+			else {
+				Array.from(book.querySelectorAll('.dwn-icon, .rm-book'))
+					.forEach(item => {
+						item.remove();
+					});
+
+				if(bookUrl)
 					book.classList.add('downloaded');
-				})
-				.catch(function () {
-					book.classList.remove('downloaded');
-				});
+			}
 		});
 	</script>
 
